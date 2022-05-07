@@ -1,9 +1,8 @@
-const express = require('express');;
-const { VendorLogin, VendorRegister } = require('../../controller/')
+const express = require('express');
+const { VendorLogin } = require('../../controller/');
 
-const router = express.Router()
+const router = express.Router();
 
-router.get('/vendor-log', VendorLogin)
-router.get('/vendor-reg', VendorRegister)
+router.post('/vendor/login', VendorLogin);
 
 export { router as VendorRoute };

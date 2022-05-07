@@ -1,14 +1,26 @@
-import {Request, Response, NextFunction} from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { Vendor } from '../../models';
+import { FindVendor, ValidatePassword } from '../../utility';
 
-const VendorRegister = (req: Request, res: Response, next: NextFunction) => {
-    res.json({ message: "Hello from vendor reg" })
-}
+/*
+    Vendor login
+    POST request
+*/
+const VendorLogin = async (req: Request, res: Response, next: NextFunction) => {
+	const { email, password } = req.body;
 
-const VendorLogin = (req: Request, res: Response, next: NextFunction) => {
-    res.json({ message: "Hello from vendor log" })
-}
+	//Find vendor in DB
+	const ExistingVendor = await FindVendor('', email);
+	if (!ExistingVendor) return res.json({ message: 'Invalid email address' });
 
-export {
-   VendorRegister,
-   VendorLogin
-}
+	// validate password
+	const validation = await ValidatePassword(password, ExistingVendor.password, ExistingVendor.salt);
+	if (!validation) {
+		return res.status(400).json({ Error: 'Invalid password' });
+	}
+
+	// return vendor details on successful validation
+	return res.status(200).json(ExistingVendor);
+};
+
+export { VendorLogin };

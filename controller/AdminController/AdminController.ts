@@ -1,18 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { CreateVendorInput } from '../../types';
 import { Vendor } from '../../models';
-import { GeneretePassword, GenereteSalt } from '../../utility';
+import { GeneretePassword, GenereteSalt, FindVendor } from '../../utility';
 
-//Utility functions
-export const FindVendor = async (id: String | undefined, email?: string) => {
-	if (email) {
-		return await Vendor.findOne({ email: email });
-	} else {
-		return await Vendor.findById(id);
-	}
-};
-
-//############### CREATE VENDOR ###############
+/* Create Vendor
+	POST request
+ */
 const CreateVendor = async (req: Request, res: Response, next: NextFunction) => {
 	const { name, ownerName, foodType, pincode, address, phone, email, password } = <CreateVendorInput>req.body;
 	const isVendorExist = await FindVendor('', email);
@@ -43,12 +36,18 @@ const CreateVendor = async (req: Request, res: Response, next: NextFunction) => 
 	});
 };
 
+/* Get all Vendors
+	GET request
+ */
 const GetVendors = async (req: Request, res: Response, next: NextFunction) => {
 	const vendors = await Vendor.find();
 	if (!vendors) return res.json({ message: 'No vendor data found' });
 	res.json({ count: vendors.length, vendors });
 };
 
+/* Get a singlr Vendors by ID
+	GET request
+ */
 const GetVendorById = async (req: Request, res: Response, next: NextFunction) => {
 	const ID = req.params.id;
 	const vendor = await FindVendor(ID);

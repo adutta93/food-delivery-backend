@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { Vendor } from '../../models';
+import { IRequest } from '../../types';
 import { FindVendor, ValidatePassword, GenerateSignature } from '../../utility';
-const { APP_SECRET } = require('../../config');
-const jwt = require('jsonwebtoken');
+
 /*
     Vendor login
     POST request
@@ -33,4 +33,17 @@ const VendorLogin = async (req: Request, res: Response, next: NextFunction) => {
 	});
 };
 
-export { VendorLogin };
+/*
+    Get Vendor profile
+    POST request
+*/
+
+const GetVendorProfile = async (req: IRequest, res: Response, next: NextFunction) => {
+	const user = req.user;
+	if (user) {
+		const ExistingUser = await FindVendor(user._id);
+		return res.status(200).json({ ExistingUser });
+	}
+	res.status(400).json({ Error: 'User not found' });
+};
+export { VendorLogin, GetVendorProfile };

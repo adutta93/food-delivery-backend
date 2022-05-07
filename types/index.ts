@@ -1,1 +1,2 @@
-export * from './Vendor.types'
+export * from './Vendor.types';
+export * from './Customer.types';

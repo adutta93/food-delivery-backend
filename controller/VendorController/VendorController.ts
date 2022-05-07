@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { Vendor } from '../../models';
-import { FindVendor, ValidatePassword } from '../../utility';
-
+import { FindVendor, ValidatePassword, GenerateSignature } from '../../utility';
+const { APP_SECRET } = require('../../config');
+const jwt = require('jsonwebtoken');
 /*
     Vendor login
     POST request
@@ -18,9 +19,18 @@ const VendorLogin = async (req: Request, res: Response, next: NextFunction) => {
 	if (!validation) {
 		return res.status(400).json({ Error: 'Invalid password' });
 	}
-
-	// return vendor details on successful validation
-	return res.status(200).json(ExistingVendor);
+	console.log(typeof ExistingVendor._id);
+	// generate token
+	const token = await GenerateSignature({ _id: ExistingVendor._id });
+	res.cookie('token', token);
+	return res.status(200).json({
+		token,
+		user: {
+			_id: ExistingVendor._id,
+			name: ExistingVendor.name,
+			email: ExistingVendor.email,
+		},
+	});
 };
 
 export { VendorLogin };

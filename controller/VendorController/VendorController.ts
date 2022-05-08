@@ -1,7 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import { Vendor } from '../../models';
-import { IRequest } from '../../types';
+import { EditVendorInput, AuthPayload } from '../../types';
 import { FindVendor, ValidatePassword, GenerateSignature } from '../../utility';
+
+declare global {
+	namespace Express {
+		interface Request {
+			user?: AuthPayload;
+			get: any;
+		}
+	}
+}
 
 /*
     Vendor login
@@ -38,7 +47,7 @@ const VendorLogin = async (req: Request, res: Response, next: NextFunction) => {
     POST request
 */
 
-const GetVendorProfile = async (req: IRequest, res: Response, next: NextFunction) => {
+const GetVendorProfile = async (req: Request, res: Response, next: NextFunction) => {
 	const user = req.user;
 	if (user) {
 		const ExistingUser = await FindVendor(user._id);
@@ -46,4 +55,43 @@ const GetVendorProfile = async (req: IRequest, res: Response, next: NextFunction
 	}
 	res.status(400).json({ Error: 'User not found' });
 };
-export { VendorLogin, GetVendorProfile };
+
+/*
+    Update Vendor profile
+    PUT request
+*/
+
+const UpdateVendorProfile = async (req: Request, res: Response, next: NextFunction) => {
+	const { name, address, phone, foodType } = req.body as EditVendorInput;
+	const user = req.user;
+	if (user) {
+		const ExistingVendor = await FindVendor(user._id);
+		if (ExistingVendor) {
+			ExistingVendor.name = name;
+			ExistingVendor.address = address;
+			ExistingVendor.phone = phone;
+			ExistingVendor.foodType = foodType;
+
+			const SavedUser = await ExistingVendor.save();
+			return res.status(200).json({ Success: 'User successfully saved', SavedUser });
+		}
+		res.status(400).json({ Error: 'Unable to save user' });
+	}
+	res.status(400).json({ Error: 'User not found' });
+};
+
+/*
+    Update Vendor service
+    PUT request
+*/
+
+const UpdateVendorService = async (req: Request, res: Response, next: NextFunction) => {
+	const user = req.user;
+	if (user) {
+		const ExistingUser = await FindVendor(user._id);
+		return res.status(200).json({ ExistingUser });
+	}
+	res.status(400).json({ Error: 'User not found' });
+};
+
+export { VendorLogin, GetVendorProfile, UpdateVendorProfile, UpdateVendorService };

@@ -1,8 +1,8 @@
+const { Request } = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { AuthPayload } = require('../types');
 const { APP_SECRET } = require('../config');
-const { IRequest } = require('../types');
 
 const GenereteSalt = async () => {
 	return await bcrypt.genSalt();
@@ -17,13 +17,13 @@ const ValidatePassword = async (enteredPassword: string, savedPassword: string, 
 };
 
 const GenerateSignature = async (payload: typeof AuthPayload) => {
-	return await jwt.sign(payload, APP_SECRET, { expiresIn: '2d' });
+	return await jwt.sign(payload, APP_SECRET, { expiresIn: '10d' });
 };
 
-export const ValidateSignature = async (req: typeof IRequest) => {
-	const token = req.get('Authorization').split(' ')[1];
+export const ValidateSignature = async (req: typeof Request) => {
+	const token = req.get('Authorization')?.split(' ')[1];
 	if (token) {
-		const payload = (await jwt.verify(token, APP_SECRET)) as typeof AuthPayload;
+		const payload = await jwt.verify(token, APP_SECRET);
 		req.user = payload;
 		return true;
 	}

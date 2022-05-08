@@ -85,13 +85,18 @@ const UpdateVendorProfile = async (req: Request, res: Response, next: NextFuncti
     PUT request
 */
 
-const UpdateVendorService = async (req: Request, res: Response, next: NextFunction) => {
+const UpdateVendorServiceStatus = async (req: Request, res: Response, next: NextFunction) => {
 	const user = req.user;
 	if (user) {
-		const ExistingUser = await FindVendor(user._id);
-		return res.status(200).json({ ExistingUser });
+		const ExistingVendor = await FindVendor(user._id);
+		if (ExistingVendor) {
+			ExistingVendor.serviceAvailable = !ExistingVendor.serviceAvailable;
+			const SavedUser = await ExistingVendor.save();
+			return res.status(200).json({ Success: 'Service status successfully changed', SavedUser });
+		}
+		res.status(400).json({ Error: 'Unable to change service status' });
 	}
 	res.status(400).json({ Error: 'User not found' });
 };
 
-export { VendorLogin, GetVendorProfile, UpdateVendorProfile, UpdateVendorService };
+export { VendorLogin, GetVendorProfile, UpdateVendorProfile, UpdateVendorServiceStatus };

@@ -4,14 +4,19 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
 const colors = require('colors/safe');
+const path = require('path');
 
 const app = express();
+
 app.use(cors());
 app.use(cors());
 app.use(morgan('tiny'));
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+const imagePath = path.join(__dirname, '../images');
+app.use('/images', express.static(imagePath));
 
 //Mongo_DB config
 const { MONGO_URI } = require('./config');

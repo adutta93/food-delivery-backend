@@ -30,6 +30,7 @@ const CreateVendor = async (req: Request, res: Response, next: NextFunction) => 
 		salt: salt,
 		serviceAvailable: false,
 		coverImages: [],
+		foods: [],
 	});
 	return res.json({
 		_createVendor,

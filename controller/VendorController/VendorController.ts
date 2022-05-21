@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { Vendor } from '../../models';
-import { EditVendorInput, AuthPayload } from '../../types';
+import { Vendor, Food } from '../../models';
+import { EditVendorInput, AuthPayload, CreateFoodInput } from '../../types';
 import { FindVendor, ValidatePassword, GenerateSignature } from '../../utility';
 
 declare global {
@@ -80,6 +80,22 @@ const UpdateVendorProfile = async (req: Request, res: Response, next: NextFuncti
 	res.status(400).json({ Error: 'User not found' });
 };
 
+export const UpdateVendorCoverImage = async (req: Request, res: Response, next: NextFunction) => {
+	const user = req.user;
+
+	if (user) {
+		const ExistingVendor = await FindVendor(user._id);
+
+		if (ExistingVendor) {
+			const files = req.files as [Express.Multer.File];
+			const images = files.map((file: Express.Multer.File) => file.filename);
+			ExistingVendor.coverImages.push(...images);
+			const SaveResult = await ExistingVendor.save();
+			return res.json(SaveResult);
+		}
+	}
+	return res.json({ message: 'Unable to Update vendor profile ' });
+};
 /*
     Update Vendor service
     PUT request
@@ -99,4 +115,42 @@ const UpdateVendorServiceStatus = async (req: Request, res: Response, next: Next
 	res.status(400).json({ Error: 'User not found' });
 };
 
-export { VendorLogin, GetVendorProfile, UpdateVendorProfile, UpdateVendorServiceStatus };
+/*
+    Add food items
+    POST request
+*/
+const AddFoodItems = async (req: Request, res: Response, next: NextFunction) => {
+	const user = req.user;
+	if (user) {
+		const { name, description, category, foodType, readyTime, price } = <CreateFoodInput>req.body;
+		const ExistingVendor = await FindVendor(user._id);
+		if (ExistingVendor) {
+			const files = req.files as [Express.Multer.File];
+			const images = files.map((file: Express.Multer.File) => file.filename);
+
+			const CreatedFood = await Food.create({
+				vendorId: ExistingVendor._id,
+				name,
+				description,
+				category,
+				foodType,
+				readyTime,
+				images: images,
+				price,
+			});
+			ExistingVendor.foods.push(CreatedFood);
+			const FinaleResult = await ExistingVendor.save();
+			return res.status(200).json({ Success: 'FoodItem successfully created', CreatedFood, FinaleResult });
+		}
+		res.status(400).json({ Error: 'Unable to create FoodItem' });
+	}
+	res.status(400).json({ Error: 'User not found' });
+};
+
+const GetAllFoodItems = async (req: Request, res: Response, next: NextFunction) => {
+	const AllFood = await Food.find();
+	if (!AllFood) return res.json({ message: 'No food data found' });
+	res.json({ count: AllFood.length, AllFood });
+};
+
+export { VendorLogin, GetVendorProfile, UpdateVendorProfile, UpdateVendorServiceStatus, AddFoodItems, GetAllFoodItems };
